@@ -6,9 +6,13 @@
 #
 
 PRODUCT_MAKEFILES := \
-    $(LOCAL_DIR)/twrp_pipa.mk
+    $(LOCAL_DIR)/twrp_pipa.mk \
+    $(LOCAL_DIR)/pipa_twrp.mk
 
 COMMON_LUNCH_CHOICES := \
     twrp_pipa-user \
     twrp_pipa-userdebug \
-    twrp_pipa-eng
+    twrp_pipa-eng \
+    pipa_twrp-user \
+    pipa_twrp-userdebug \
+    pipa_twrp-eng
