@@ -1,0 +1,78 @@
+name: Build pipa OrangeFox
+
+on:
+  workflow_dispatch:
+    inputs:
+      orangefox_branch:
+        description: OrangeFox source branch. 14.1 has newer FBE userspace; 12.1 is the known fallback.
+        required: true
+        default: '14.1'
+        type: choice
+        options:
+          - '14.1'
+          - '12.1'
+
+jobs:
+  recovery:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    steps:
+      - name: Free build space
+        run: |
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc
+          sudo docker image prune --all --force
+          df -h
+
+      - name: Check out this OrangeFox device tree
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y aria2 bc bison build-essential ccache curl flex g++-multilib gcc-multilib git git-lfs gnupg gperf imagemagick lib32ncurses5-dev lib32readline-dev lib32z1-dev libelf-dev liblz4-tool libncurses5-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop openjdk-17-jdk pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev
+          mkdir -p "$HOME/bin"
+          curl -fsSL https://storage.googleapis.com/git-repo-downloads/repo -o "$HOME/bin/repo"
+          chmod +x "$HOME/bin/repo"
+          echo "$HOME/bin" >> "$GITHUB_PATH"
+
+      - name: Sync OrangeFox source
+        env:
+          FOX_BRANCH: ${{ inputs.orangefox_branch }}
+        run: |
+          git clone --depth=1 https://gitlab.com/OrangeFox/misc/scripts.git -b master /tmp/ofox-scripts
+          bash /tmp/ofox-scripts/setup/android_build_env.sh
+          mkdir -p "$GITHUB_WORKSPACE/source"
+          cd "$GITHUB_WORKSPACE/source"
+          git clone --depth=1 https://gitlab.com/OrangeFox/sync.git -b master sync
+          ./sync/orangefox_sync.sh --branch "$FOX_BRANCH" --path "$GITHUB_WORKSPACE/source/fox"
+
+      - name: Install the patched pipa tree
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/source/fox/device/xiaomi/pipa"
+          rsync -a --delete --exclude='.git' --exclude='source' "$GITHUB_WORKSPACE/" "$GITHUB_WORKSPACE/source/fox/device/xiaomi/pipa/"
+
+      - name: Build OrangeFox boot image
+        env:
+          FOX_BRANCH: ${{ inputs.orangefox_branch }}
+        run: |
+          cd "$GITHUB_WORKSPACE/source/fox"
+          source build/envsetup.sh
+          export ALLOW_MISSING_DEPENDENCIES=true
+          export FOX_BUILD_DEVICE=pipa
+          if [ "$FOX_BRANCH" = '14.1' ]; then
+            lunch twrp_pipa-ap2a-eng
+          else
+            lunch twrp_pipa-eng
+          fi
+          mka adbd bootimage -j"$(nproc --all)"
+
+      - name: Upload OrangeFox image and build logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: pipa-orangefox-${{ inputs.orangefox_branch }}
+          path: |
+            source/fox/out/target/product/pipa/OrangeFox*.img
+            source/fox/out/target/product/pipa/OrangeFox*.zip
+            source/fox/out/target/product/pipa/boot.img
+            source/fox/out/target/product/pipa/recovery.log
+          if-no-files-found: warn
