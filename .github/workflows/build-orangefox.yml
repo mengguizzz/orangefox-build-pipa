@@ -54,8 +54,6 @@ jobs:
           # Keep automated verification on the newer FBE-capable branch.
           FOX_BRANCH: ${{ inputs.orangefox_branch || '14.1' }}
         run: |
-          git clone --depth=1 https://gitlab.com/OrangeFox/misc/scripts.git -b master /tmp/ofox-scripts
-          bash /tmp/ofox-scripts/setup/android_build_env.sh
           mkdir -p "$GITHUB_WORKSPACE/OrangeFox"
           cd "$GITHUB_WORKSPACE/OrangeFox"
           git clone --depth=1 https://gitlab.com/OrangeFox/sync.git -b master sync
