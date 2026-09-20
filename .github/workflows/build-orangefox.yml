@@ -54,21 +54,25 @@ jobs:
         run: |
           git clone --depth=1 https://gitlab.com/OrangeFox/misc/scripts.git -b master /tmp/ofox-scripts
           bash /tmp/ofox-scripts/setup/android_build_env.sh
-          mkdir -p "$GITHUB_WORKSPACE/source"
-          cd "$GITHUB_WORKSPACE/source"
+          mkdir -p "$GITHUB_WORKSPACE/OrangeFox"
+          cd "$GITHUB_WORKSPACE/OrangeFox"
           git clone --depth=1 https://gitlab.com/OrangeFox/sync.git -b master sync
-          ./sync/orangefox_sync.sh --branch "$FOX_BRANCH" --path "$GITHUB_WORKSPACE/source/fox"
+          ./sync/orangefox_sync.sh --branch "$FOX_BRANCH" --path "$GITHUB_WORKSPACE/OrangeFox/fox_$FOX_BRANCH"
 
       - name: Install the patched pipa tree
+        env:
+          FOX_BRANCH: ${{ inputs.orangefox_branch }}
         run: |
-          mkdir -p "$GITHUB_WORKSPACE/source/fox/device/xiaomi/pipa"
-          rsync -a --delete --exclude='.git' --exclude='source' "$GITHUB_WORKSPACE/" "$GITHUB_WORKSPACE/source/fox/device/xiaomi/pipa/"
+          FOX_SOURCE="$GITHUB_WORKSPACE/OrangeFox/fox_$FOX_BRANCH"
+          test -f "$FOX_SOURCE/build/envsetup.sh"
+          mkdir -p "$FOX_SOURCE/device/xiaomi/pipa"
+          rsync -a --delete --exclude='.git' --exclude='OrangeFox' "$GITHUB_WORKSPACE/" "$FOX_SOURCE/device/xiaomi/pipa/"
 
       - name: Build OrangeFox boot image
         env:
           FOX_BRANCH: ${{ inputs.orangefox_branch }}
         run: |
-          cd "$GITHUB_WORKSPACE/source/fox"
+          cd "$GITHUB_WORKSPACE/OrangeFox/fox_$FOX_BRANCH"
           source build/envsetup.sh
           export ALLOW_MISSING_DEPENDENCIES=true
           export FOX_BUILD_DEVICE=pipa
@@ -84,8 +88,8 @@ jobs:
         with:
           name: pipa-orangefox-${{ inputs.orangefox_branch }}
           path: |
-            source/fox/out/target/product/pipa/OrangeFox*.img
-            source/fox/out/target/product/pipa/OrangeFox*.zip
-            source/fox/out/target/product/pipa/boot.img
-            source/fox/out/target/product/pipa/recovery.log
+            OrangeFox/fox_*/out/target/product/pipa/OrangeFox*.img
+            OrangeFox/fox_*/out/target/product/pipa/OrangeFox*.zip
+            OrangeFox/fox_*/out/target/product/pipa/boot.img
+            OrangeFox/fox_*/out/target/product/pipa/recovery.log
           if-no-files-found: warn
