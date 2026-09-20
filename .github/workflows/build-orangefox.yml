@@ -7,9 +7,9 @@ on:
   workflow_dispatch:
     inputs:
       orangefox_branch:
-        description: OrangeFox source branch. 14.1 has newer FBE userspace; 12.1 is the known fallback.
+        description: OrangeFox source branch. 12.1 is the upstream pipa README baseline; 14.1 is experimental.
         required: true
-        default: '14.1'
+        default: '12.1'
         type: choice
         options:
           - '14.1'
@@ -48,7 +48,7 @@ jobs:
         env:
           # workflow_dispatch provides this input, while a push does not.
           # Keep automated verification on the newer FBE-capable branch.
-          FOX_BRANCH: ${{ inputs.orangefox_branch || '14.1' }}
+          FOX_BRANCH: ${{ inputs.orangefox_branch || '12.1' }}
         run: |
           git config --global user.name 'GitHub Actions'
           git config --global user.email 'actions@github.com'
@@ -63,7 +63,7 @@ jobs:
 
       - name: Install the patched pipa tree
         env:
-          FOX_BRANCH: ${{ inputs.orangefox_branch || '14.1' }}
+          FOX_BRANCH: ${{ inputs.orangefox_branch || '12.1' }}
         run: |
           FOX_SOURCE="$GITHUB_WORKSPACE/OrangeFox/fox_$FOX_BRANCH"
           test -f "$FOX_SOURCE/build/envsetup.sh"
@@ -72,7 +72,7 @@ jobs:
 
       - name: Build OrangeFox boot image
         env:
-          FOX_BRANCH: ${{ inputs.orangefox_branch || '14.1' }}
+          FOX_BRANCH: ${{ inputs.orangefox_branch || '12.1' }}
         run: |
           set -o pipefail
           {
@@ -92,14 +92,15 @@ jobs:
             echo '--- requested make targets ---'
             make --no-print-directory -n bootimage >/dev/null && echo 'bootimage target: present' || echo 'bootimage target: absent'
             make --no-print-directory -n recoveryimage >/dev/null && echo 'recoveryimage target: present' || echo 'recoveryimage target: absent'
-            mka adbd bootimage -j"$(nproc --all)"
+          # Match the upstream pipa README's verified build command.
+          mka bootimage -j"$(nproc --all)"
           } 2>&1 | tee "$GITHUB_WORKSPACE/orangefox-build.log"
 
       - name: Upload OrangeFox image and build logs
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: pipa-orangefox-${{ inputs.orangefox_branch || '14.1' }}
+          name: pipa-orangefox-${{ inputs.orangefox_branch || '12.1' }}
           path: |
             OrangeFox/fox_*/out/target/product/pipa/OrangeFox*.img
             OrangeFox/fox_*/out/target/product/pipa/OrangeFox*.zip
