@@ -109,7 +109,9 @@ TW_FRAMERATE := 120
 
 # Crypto
 TW_INCLUDE_CRYPTO := true
-PLATFORM_VERSION := 16
+# Keep this aligned with the ROM whose FBE metadata key is being opened.
+# PRODUCT_SHIPPING_API_LEVEL stays at 30 in device.mk because pipa launched on API 30.
+PLATFORM_VERSION := 17
 PLATFORM_VERSION_LAST_STABLE := $(PLATFORM_VERSION)
 PLATFORM_SECURITY_PATCH := 2099-12-31
 VENDOR_SECURITY_PATCH := $(PLATFORM_SECURITY_PATCH)
@@ -125,7 +127,7 @@ TW_INCLUDE_LPTOOLS := true
 # TWRP Configuration
 TW_THEME := portrait_hdpi
 ifeq ($(TW_DEVICE_VERSION),)
-TW_DEVICE_VERSION=16.0
+TW_DEVICE_VERSION=17.0-experimental
 endif
 RECOVERY_SDCARD_ON_DATA := true
 BOARD_HAS_NO_REAL_SDCARD := true
