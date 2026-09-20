@@ -78,11 +78,14 @@ jobs:
           source build/envsetup.sh
           export ALLOW_MISSING_DEPENDENCIES=true
           export FOX_BUILD_DEVICE=pipa
-          # This pipa tree exposes twrp_pipa-{user,userdebug,eng}; it does
-          # not define the Android 14 release alias twrp_pipa-ap2a-eng.
-          # The source branch remains 14.1; only lunch uses the product name
-          # actually declared by device/xiaomi/pipa/AndroidProducts.mk.
-          lunch twrp_pipa-eng
+          # OrangeFox 14.1 uses the Android 14 product suffix.  This is the
+          # target used by the upstream OrangeFox builder for 14.1; the older
+          # tree's COMMON_LUNCH_CHOICES still lists the legacy target.
+          if [ "$FOX_BRANCH" = '14.1' ]; then
+            lunch twrp_pipa-ap2a-eng
+          else
+            lunch twrp_pipa-eng
+          fi
           mka adbd bootimage -j"$(nproc --all)"
 
       - name: Upload OrangeFox image and build logs
