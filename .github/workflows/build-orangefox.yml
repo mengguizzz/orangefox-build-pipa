@@ -1,6 +1,9 @@
 name: Build pipa OrangeFox
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       orangefox_branch:
