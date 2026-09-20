@@ -56,7 +56,10 @@ jobs:
           mkdir -p "$GITHUB_WORKSPACE/OrangeFox"
           cd "$GITHUB_WORKSPACE/OrangeFox"
           git clone --depth=1 https://gitlab.com/OrangeFox/sync.git -b master sync
-          ./sync/orangefox_sync.sh --branch "$FOX_BRANCH" --path "$GITHUB_WORKSPACE/OrangeFox/fox_$FOX_BRANCH"
+          # orangefox_sync.sh resolves its patches from $PWD.  Run from the
+          # cloned sync directory, exactly as the upstream pipa workflow does.
+          cd sync
+          ./orangefox_sync.sh --branch "$FOX_BRANCH" --path "$GITHUB_WORKSPACE/OrangeFox/fox_$FOX_BRANCH"
 
       - name: Install the patched pipa tree
         env:
