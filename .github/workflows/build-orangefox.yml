@@ -78,9 +78,8 @@ jobs:
           source build/envsetup.sh
           export ALLOW_MISSING_DEPENDENCIES=true
           export FOX_BUILD_DEVICE=pipa
-          # OrangeFox's 14.1 product registration uses the device-first
-          # pipa_twrp alias supplied by this tree.
-          lunch pipa_twrp-eng
+          # This is the target documented by the original pipa builder.
+          lunch twrp_pipa-eng
           mka adbd bootimage -j"$(nproc --all)"
 
       - name: Upload OrangeFox image and build logs
