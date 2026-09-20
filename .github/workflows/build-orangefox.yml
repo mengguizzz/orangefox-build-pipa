@@ -29,10 +29,20 @@ jobs:
       - name: Check out this OrangeFox device tree
         uses: actions/checkout@v4
 
+      - name: Expand build space
+        uses: easimon/maximize-build-space@v10
+        with:
+          root-reserve-mb: 3072
+          temp-reserve-mb: 1024
+
       - name: Install build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y aria2 bc bison build-essential ccache curl flex g++-multilib gcc-multilib git git-lfs gnupg gperf imagemagick lib32ncurses5-dev lib32readline-dev lib32z1-dev libelf-dev liblz4-tool libncurses5-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop openjdk-17-jdk pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev
+          # Ubuntu 24.04 removed the old lib32ncurses5-dev/libncurses5-dev
+          # package names used by older OrangeFox guides.  Recovery is built
+          # for arm64, so the obsolete 32-bit ncurses/readline packages are
+          # unnecessary here.
+          sudo apt-get install -y aria2 bc bison build-essential ccache curl flex g++-multilib gcc-multilib git git-lfs gnupg gperf imagemagick lib32z1-dev libelf-dev liblz4-tool libncurses-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop openjdk-17-jdk pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev
           mkdir -p "$HOME/bin"
           curl -fsSL https://storage.googleapis.com/git-repo-downloads/repo -o "$HOME/bin/repo"
           chmod +x "$HOME/bin/repo"
