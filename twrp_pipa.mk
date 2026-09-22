@@ -15,9 +15,6 @@ $(call inherit-product, $(SRC_TARGET_DIR)/product/base.mk)
 # Enable virtual A/B OTA
 $(call inherit-product, $(SRC_TARGET_DIR)/product/virtual_ab_ota.mk)
 
-# Installs gsi keys into ramdisk, to boot a developer GSI with verified boot.
-$(call inherit-product, $(SRC_TARGET_DIR)/product/gsi_keys.mk)
-
 # Inherit from pipa device
 $(call inherit-product, device/xiaomi/pipa/device.mk)
 
