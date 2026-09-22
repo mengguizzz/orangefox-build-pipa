@@ -1,0 +1,70 @@
+name: Build pipa TWRP 16.0 experiment
+
+on:
+  workflow_dispatch:
+
+jobs:
+  recovery:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    steps:
+      - name: Check out pipa device tree
+        uses: actions/checkout@v4
+
+      - name: Free build space
+        run: |
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc
+          sudo docker image prune --all --force
+          df -h
+
+      - name: Set up Android build environment
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y aria2 git-core gnupg flex bison build-essential \
+            zip curl zlib1g-dev gcc-multilib g++-multilib libc6-dev-i386 \
+            libncurses5 lib32ncurses5-dev x11proto-core-dev libx11-dev \
+            lib32z1-dev libgl1-mesa-dev libxml2-utils xsltproc unzip python3
+          git clone --depth=1 https://github.com/akhilnarang/scripts.git android-build-env
+          sudo bash android-build-env/setup/android_build_env.sh
+          rm -rf android-build-env
+          command -v repo
+
+      - name: Sync TWRP 16.0 base
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/twrp"
+          cd "$GITHUB_WORKSPACE/twrp"
+          repo init --depth=1 -u https://github.com/ymdzq/manifest_twrp.git -b twrp-16.0
+          repo sync -c --force-sync --no-clone-bundle --no-tags -j2
+
+      - name: Install pipa device tree
+        run: |
+          SOURCE="$GITHUB_WORKSPACE/twrp"
+          test -f "$SOURCE/build/envsetup.sh"
+          mkdir -p "$SOURCE/device/xiaomi/pipa"
+          rsync -a --delete --exclude='.git' --exclude='twrp' \
+            "$GITHUB_WORKSPACE/" "$SOURCE/device/xiaomi/pipa/"
+
+      - name: Build pipa boot image
+        run: |
+          set -o pipefail
+          cd "$GITHUB_WORKSPACE/twrp"
+          source build/envsetup.sh
+          export ALLOW_MISSING_DEPENDENCIES=true
+          lunch twrp_pipa-eng
+          echo '--- TWRP 16.0 build configuration ---'
+          get_build_var TARGET_PRODUCT
+          get_build_var PLATFORM_VERSION
+          get_build_var PLATFORM_SDK_VERSION
+          get_build_var PRODUCT_TARGET_VNDK_VERSION
+          mka bootimage -j"$(nproc --all)" 2>&1 | tee "$GITHUB_WORKSPACE/twrp-build.log"
+
+      - name: Upload image and log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pipa-twrp-16.0-experiment
+          path: |
+            twrp/out/target/product/pipa/boot.img
+            twrp/out/target/product/pipa/recovery.img
+            twrp-build.log
+          if-no-files-found: warn
