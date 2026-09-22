@@ -51,7 +51,7 @@ jobs:
           source build/envsetup.sh
           export ALLOW_MISSING_DEPENDENCIES=true
           find device/xiaomi/pipa -maxdepth 1 -name 'AndroidProducts.mk' -print -exec sed -n '1,120p' {} \;
-          lunch twrp_pipa-bp2a-eng
+          lunch twrp_pipa-bp4a-eng
           echo '--- TWRP 16.0 build configuration ---'
           get_build_var TARGET_PRODUCT
           get_build_var PLATFORM_VERSION
