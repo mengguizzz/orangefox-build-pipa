@@ -10,6 +10,10 @@ DEVICE_PATH := device/xiaomi/pipa
 # For building with minimal manifest
 ALLOW_MISSING_DEPENDENCIES := true
 
+# Android 14.1 validates external Soong plugins. OrangeFox recovery still
+# registers these local plugins outside the framework allow-list.
+BUILD_BROKEN_PLUGIN_VALIDATION := soong-libaosprecovery_defaults soong-libguitwrp_defaults soong-libminuitwrp_defaults soong-vold_defaults
+
 # Architecture
 TARGET_ARCH := arm64
 TARGET_ARCH_VARIANT := armv8-a
@@ -88,8 +92,8 @@ BOARD_SUPER_PARTITION_GROUPS := qti_dynamic_partitions
 BOARD_QTI_DYNAMIC_PARTITIONS_SIZE := 9124708352
 BOARD_QTI_DYNAMIC_PARTITIONS_PARTITION_LIST := system product odm system_ext vendor
 
-# System as root
-BOARD_BUILD_SYSTEM_ROOT_IMAGE := false
+# System-as-root is the Android 14+ default. Do not set the removed legacy
+# BOARD_BUILD_SYSTEM_ROOT_IMAGE flag: Android 14.1 rejects it.
 BOARD_ROOT_EXTRA_FOLDERS := bluetooth dsp firmware persist
 BOARD_SUPPRESS_SECURE_ERASE := true
 
@@ -115,8 +119,8 @@ TARGET_RECOVERY_DEFAULT_TOUCH_ROTATION := ROTATION_RIGHT
 
 # Crypto
 TW_INCLUDE_CRYPTO := true
-PLATFORM_VERSION := 16
-PLATFORM_VERSION_LAST_STABLE := $(PLATFORM_VERSION)
+# PLATFORM_VERSION is supplied by the selected Android release config.
+# Do not override it here: the AP2A release is Android 14.
 PLATFORM_SECURITY_PATCH := 2099-12-31
 VENDOR_SECURITY_PATCH := $(PLATFORM_SECURITY_PATCH)
 BOOT_SECURITY_PATCH := $(PLATFORM_SECURITY_PATCH)
