@@ -35,6 +35,13 @@ jobs:
           cd "$GITHUB_WORKSPACE/twrp"
           repo init --depth=1 -u https://github.com/ymdzq/manifest_twrp.git -b twrp-16.0
           repo sync -c --force-sync --no-clone-bundle --no-tags -j2
+          # A16 Soong rejects this legacy Android.mk during its global source
+          # scan, even when repack tools are disabled in BoardConfig. It is
+          # only needed by the disabled Magisk repack feature, not recovery
+          # boot or FBE decryption.
+          if [ -f external/magisk-prebuilt/Android.mk ]; then
+            mv external/magisk-prebuilt/Android.mk external/magisk-prebuilt/Android.mk.disabled-for-a16
+          fi
 
       - name: Install pipa device tree
         run: |
