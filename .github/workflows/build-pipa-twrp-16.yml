@@ -31,10 +31,18 @@ jobs:
 
       - name: Add compressed swap for Soong
         run: |
-          sudo modprobe zram
-          sudo sed -i 's/^#PERCENT=50/PERCENT=90/' /etc/default/zramswap
-          sudo sed -i 's/^#PRIORITY=100/PRIORITY=1000/' /etc/default/zramswap
-          sudo systemctl restart zramswap
+          if sudo modprobe zram; then
+            sudo sed -i 's/^#PERCENT=50/PERCENT=90/' /etc/default/zramswap
+            sudo sed -i 's/^#PRIORITY=100/PRIORITY=1000/' /etc/default/zramswap
+            sudo systemctl restart zramswap
+          else
+            # GitHub's Azure kernel can omit the zram module. Use the runner's
+            # ephemeral work disk as a lower-priority fallback instead.
+            sudo fallocate -l 12G /mnt/twrp-a16.swap
+            sudo chmod 600 /mnt/twrp-a16.swap
+            sudo mkswap /mnt/twrp-a16.swap
+            sudo swapon --priority 100 /mnt/twrp-a16.swap
+          fi
           swapon --show
           free -h
 
