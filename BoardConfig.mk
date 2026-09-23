@@ -126,7 +126,10 @@ VENDOR_SECURITY_PATCH := $(PLATFORM_SECURITY_PATCH)
 BOOT_SECURITY_PATCH := $(PLATFORM_SECURITY_PATCH)
 
 # Tool
-TW_INCLUDE_REPACKTOOLS := true
+# TWRP-A16's Soong scanner rejects the legacy Android.mk in the upstream
+# Magisk prebuilt project. Repack tools are not required to boot recovery or
+# decrypt /data, so keep them disabled for this initial A16 compatibility test.
+# TW_INCLUDE_REPACKTOOLS := true
 TW_INCLUDE_RESETPROP := true
 TW_INCLUDE_LIBRESETPROP := true
 TW_INCLUDE_LPDUMP := true
