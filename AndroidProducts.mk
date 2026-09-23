@@ -11,5 +11,4 @@ PRODUCT_MAKEFILES := \
 COMMON_LUNCH_CHOICES := \
     twrp_pipa-user \
     twrp_pipa-userdebug \
-    twrp_pipa-eng \
-    twrp_pipa-bp4a-eng
+    twrp_pipa-eng
