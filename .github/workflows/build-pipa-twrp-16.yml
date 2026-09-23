@@ -47,6 +47,8 @@ jobs:
       - name: Build pipa boot image
         run: |
           set -o pipefail
+          exec > >(tee "$GITHUB_WORKSPACE/twrp-build.log") 2>&1
+          set -x
           cd "$GITHUB_WORKSPACE/twrp"
           source build/envsetup.sh
           export ALLOW_MISSING_DEPENDENCIES=true
@@ -68,7 +70,7 @@ jobs:
           cat /tmp/pipa-preflight-vars
           echo '--- TWRP 16.0 build configuration ---'
           cat /tmp/pipa-preflight-vars
-          mka bootimage -j"$(nproc --all)" 2>&1 | tee "$GITHUB_WORKSPACE/twrp-build.log"
+          mka bootimage -j"$(nproc --all)"
 
       - name: Upload image and log
         if: always()
