@@ -51,14 +51,23 @@ jobs:
           source build/envsetup.sh
           export ALLOW_MISSING_DEPENDENCIES=true
           find device/xiaomi/pipa -maxdepth 1 -name 'AndroidProducts.mk' -print -exec sed -n '1,120p' {} \;
-          # TWRP-A16 uses the new positional lunch syntax. A hyphenated
-          # target is treated as the legacy product-release-variant form.
-          lunch twrp_pipa bp2a eng
+          echo '--- locally discovered products/releases/variants ---'
+          list_products || true
+          list_releases twrp_pipa || true
+          list_variants twrp_pipa || true
+          # TWRP-A16's lunch helper invokes roomservice when a product lookup
+          # fails. This is unwanted for a local pipa tree, so set the same
+          # build variables explicitly and let Soong validate the product.
+          export TARGET_PRODUCT=twrp_pipa
+          export TARGET_RELEASE=bp2a
+          export TARGET_BUILD_VARIANT=eng
+          export TARGET_BUILD_TYPE=release
+          build/soong/soong_ui.bash --dumpvars-mode \
+            --vars='TARGET_PRODUCT TARGET_RELEASE TARGET_BUILD_VARIANT TARGET_DEVICE PLATFORM_VERSION PLATFORM_SDK_VERSION PRODUCT_TARGET_VNDK_VERSION' \
+            --var-prefix=preflight_ >/tmp/pipa-preflight-vars
+          cat /tmp/pipa-preflight-vars
           echo '--- TWRP 16.0 build configuration ---'
-          get_build_var TARGET_PRODUCT
-          get_build_var PLATFORM_VERSION
-          get_build_var PLATFORM_SDK_VERSION
-          get_build_var PRODUCT_TARGET_VNDK_VERSION
+          cat /tmp/pipa-preflight-vars
           mka bootimage -j"$(nproc --all)" 2>&1 | tee "$GITHUB_WORKSPACE/twrp-build.log"
 
       - name: Upload image and log
